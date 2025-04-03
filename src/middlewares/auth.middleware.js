@@ -5,6 +5,7 @@ import { User } from "../models/user.js";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
     const refreshToken = req.cookies.refreshToken || req.headers?.authorization?.replace("Bearer ", "");
+    console.log("refreshToken from auth",refreshToken)
 
     if (!refreshToken) {
         throw new ApiError(403, "Refresh token not found");
