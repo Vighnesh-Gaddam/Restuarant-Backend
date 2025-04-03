@@ -25,6 +25,7 @@ menuRouter.put("/:id", verifyJWT, authorizedRole("admin"), upload.single("image"
 
 // menuRouter.put("/:id",updateMenuItem);
 
-menuRouter.delete("/:id", verifyJWT, authorizedRole("admin"), deleteMenuItem);
+// menuRouter.delete("/:id", verifyJWT, authorizedRole("admin"), deleteMenuItem);
+menuRouter.delete("/:id", deleteMenuItem);
 
 export default menuRouter;
