@@ -15,6 +15,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
         const user = await User.findById(decoded.id).select("-password");
 
+        console.log("user refresh token from auth",user.refreshToken);
         if (!user || user.refreshToken !== refreshToken) {
             throw new ApiError(403, "Invalid refresh token");
         }
@@ -22,6 +23,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         req.user = user;  // Attach user to the request
         next();
     } catch (error) {
+        console.log("Error verifying JWT:", error);
         throw new ApiError(403, "Invalid or expired refresh token");
     }
 });

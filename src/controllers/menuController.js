@@ -214,6 +214,7 @@ const updateMenuItem = async (req, res, next) => {
 
 const deleteMenuItem = async (req, res) => {
   try {
+    console.log("req.params.id:", req.params.id);
     const deletedItem = await Menu.findByIdAndDelete(req.params.id);
     if (!deletedItem) throw new ApiError(404, "Menu item not found");
 
@@ -221,10 +222,10 @@ const deleteMenuItem = async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, null, "Menu item deleted successfully"));
   } catch (error) {
+    console.log("Error deleting menu item:", error);
     throw new ApiError(500, "Internal server error");
   }
 };
-
 
 
 export {
