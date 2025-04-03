@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import asyncHandler from "express-async-handler";
 import { User } from "../models/user.js";
 
-export const verifyRefreshToken = asyncHandler(async (req, res, next) => {
+export const verifyJWT = asyncHandler(async (req, res, next) => {
     const refreshToken = req.cookies.refreshToken || req.headers?.authorization?.replace("Bearer ", "");
 
     if (!refreshToken) {
