@@ -13,7 +13,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Public build files (if applicable)
-public/
+# public/
 dist/
 build/
 
