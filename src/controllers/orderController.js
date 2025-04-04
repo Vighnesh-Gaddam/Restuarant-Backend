@@ -82,10 +82,6 @@ export const getUserOrders = async (req, res, next) => {
       .populate("items.menuItemId", "name price foodImage") // Populate only necessary fields
       .select("_id items totalPrice status paymentStatus createdAt estimatedTimeRemaining");
 
-    if (!orders || orders.length === 0) {
-      return next(new ApiError(404, "No orders found for this user"));
-    }
-
     res.json(new ApiResponse(200, orders, "User orders fetched successfully"));
   } catch (error) {
     console.error("Error fetching user orders:", error);
