@@ -15,7 +15,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
         const user = await User.findById(decoded.id).select("-password");
 
-        console.log("user refresh token from auth",user.refreshToken);
+        console.log("user refresh token from authdb",user.refreshToken);
         if (!user || user.refreshToken !== refreshToken) {
             throw new ApiError(403, "Invalid refresh token");
         }

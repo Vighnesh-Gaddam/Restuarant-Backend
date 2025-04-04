@@ -71,6 +71,44 @@ const loginUser = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "User logged in successfully."));
 });
 
+const adminLogin = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json(new ApiResponse(400, null, "Email and password are required."));
+    }
+
+    const user = await User.findOne({ email });
+    if (!user || !(await user.isPasswordCorrect(password))) {
+        return res.status(401).json(new ApiResponse(401, null, "Invalid email or password."));
+    }
+    
+    // Check if the user is an admin
+    if (user.role !== "admin") {
+        return res.status(403).json(new ApiResponse(403, null, "Access denied. Admins only."));
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id);
+
+    // ✅ Save refreshToken in DB
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+
+    const options = { 
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === "production", 
+        sameSite: "Strict"
+    };
+
+    // ✅ Set cookies before sending response
+    res.cookie("accessToken", accessToken, options);
+    res.cookie("refreshToken", refreshToken, options);
+
+    return res.status(200).json(new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "Admin logged in successfully."));
+});
+
 
 // ✅ Logout User
 const logoutUser = asyncHandler(async (req, res) => {
@@ -161,4 +199,4 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
 
 
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken, forgotPassword };
+export { registerUser, loginUser, logoutUser, refreshAccessToken, forgotPassword, adminLogin };

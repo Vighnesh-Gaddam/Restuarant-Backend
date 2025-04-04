@@ -21,6 +21,11 @@ const orderSchema = new Schema(
       enum: ["pending", "paid", "failed"],
       default: "pending",
     },
+    estimatedTimeRemaining: {
+      type: Number,
+      default: 10 * 60 * 1000, // default to 10 minutes
+      required: true,
+    },    
     transactionId: { type: String }, // Razorpay transaction ID
     razorpayOrderId: { type: String }, // Store Razorpay Order ID
     razorpayPaymentId: { type: String }, // Store Razorpay Payment ID

@@ -3,6 +3,7 @@ import { Order } from "../models/order.js";
 import { Cart } from "../models/cart.js"; 
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import mongoose from "mongoose";
 
 export const createOrder = async (req, res, next) => {
   try {
@@ -108,27 +109,109 @@ export const getAllOrders = async (req, res) => {
 };
 
 
-// 📌 Update Order Status
+// // 📌 Update Order Status
+// export const updateOrderStatus = async (req, res) => {
+//   const { id } = req.params;
+//   const { status } = req.body;
+
+//   try {
+//     const order = await Order.findById(id);
+//     if (!order) {
+//       return res.status(404).json({ success: false, message: "Order not found" });
+//     }
+
+//     if (!["processing", "completed", "cancelled"].includes(status)) {
+//       return res.status(400).json({ success: false, message: "Invalid status" });
+//     }
+
+//     order.status = status;
+//     await order.save();
+
+//     res.status(200).json({ success: true, message: "Order status updated successfully", data: order });
+//   } catch (error) {
+//     console.error("Error updating order status:", error);
+//     res.status(500).json({ success: false, message: "Failed to update order status" });
+//   }
+// };
+
+const timers = new Map();
+
+// Countdown timer that updates the order's remaining time every minute
+const startCountdown = (orderId) => {
+  if (timers.has(orderId.toString())) return; // Prevent multiple intervals
+
+  const interval = setInterval(async () => {
+    try {
+      const order = await Order.findById(orderId);
+      if (!order || order.status !== "processing") {
+        clearInterval(interval);
+        timers.delete(orderId.toString());
+        return;
+      }
+
+      order.estimatedTimeRemaining = Math.max(order.estimatedTimeRemaining - 60000, 0); // decrease 1 min
+
+      if (order.estimatedTimeRemaining === 0) {
+        clearInterval(interval);
+        timers.delete(orderId.toString());
+      }
+
+      await order.save();
+    } catch (error) {
+      console.error("Countdown error:", error);
+      clearInterval(interval);
+      timers.delete(orderId.toString());
+    }
+  }, 60000); // 1 minute
+
+  timers.set(orderId.toString(), interval);
+};
+
+// 📌 Update Order Status API Controller
 export const updateOrderStatus = async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, estimatedTimeInMinutes } = req.body;
 
   try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid order ID" });
+    }
+
     const order = await Order.findById(id);
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     if (!["processing", "completed", "cancelled"].includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid status" });
+      return res.status(400).json({ success: false, message: "Invalid status value" });
     }
 
     order.status = status;
-    await order.save();
 
-    res.status(200).json({ success: true, message: "Order status updated successfully", data: order });
+    if (status === "processing") {
+      // Default to 10 minutes if admin doesn't pass time
+      const timeInMs = (estimatedTimeInMinutes ?? 10) * 60 * 1000;
+      order.estimatedTimeRemaining = timeInMs;
+      await order.save();
+      startCountdown(order._id);
+    } else {
+      order.estimatedTimeRemaining = 0;
+      await order.save();
+
+      // Stop timer if running
+      if (timers.has(order._id.toString())) {
+        clearInterval(timers.get(order._id.toString()));
+        timers.delete(order._id.toString());
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+      data: order,
+    });
   } catch (error) {
     console.error("Error updating order status:", error);
-    res.status(500).json({ success: false, message: "Failed to update order status" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };

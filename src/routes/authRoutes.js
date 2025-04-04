@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, loginUser, logoutUser, refreshAccessToken } from "../controllers/authController.js";
+import { registerUser, loginUser, logoutUser, refreshAccessToken, adminLogin } from "../controllers/authController.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -18,6 +18,7 @@ authRouter.post("/register", upload.fields([{ name: "profilePic", maxCount: 1 }]
  * @access  Public
  */
 authRouter.post("/login", loginUser);
+authRouter.post("/admin-login", adminLogin);
 
 /**
  * @route   POST /api/auth/logout
