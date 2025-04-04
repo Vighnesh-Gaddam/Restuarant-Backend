@@ -80,7 +80,7 @@ export const getUserOrders = async (req, res, next) => {
     // Fetch user orders with only necessary fields
     const orders = await Order.find({ userId })
       .populate("items.menuItemId", "name price foodImage") // Populate only necessary fields
-      .select("_id items totalPrice status paymentStatus createdAt");
+      .select("_id items totalPrice status paymentStatus createdAt estimatedTimeRemaining");
 
     if (!orders || orders.length === 0) {
       return next(new ApiError(404, "No orders found for this user"));
