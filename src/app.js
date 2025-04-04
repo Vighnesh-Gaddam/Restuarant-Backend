@@ -9,18 +9,39 @@ const app = express();
 
 const allowedOrigins = ["http://localhost:5173", "http://localhost:5174", "https://restuarent-admin-frontend.vercel.app", "https://restuarent-client-frontend.vercel.app"];
 
-app.use(cors({
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         if (!origin || allowedOrigins.includes(origin)) {
+//             callback(null, true);
+//         } else {
+//             callback(new Error("Not allowed by CORS"));
+//         }
+//     },
+//     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Allow these methods
+//     credentials: true, // Allow cookies
+//     allowedHeaders: ["Content-Type", "Authorization", "withCredentials"] // Include "withCredentials"
+// }));
+
+const corsOptions = {
     origin: function (origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            console.log("Blocked by CORS:", origin);
             callback(new Error("Not allowed by CORS"));
         }
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Allow these methods
-    credentials: true, // Allow cookies
-    allowedHeaders: ["Content-Type", "Authorization", "withCredentials"] // Include "withCredentials"
-}));
+    methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+    credentials: true,
+    allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+    exposedHeaders: "Authorization" // Allow frontend to access auth tokens
+};
+
+app.use(cors(corsOptions));
+
+// Handle Preflight Requests Properly
+app.options("*", cors(corsOptions));
+
 
 
 
